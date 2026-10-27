@@ -18,6 +18,7 @@ from .const import (
     KIND_MALL,
     MALL_TYPES,
     MAX_ITEMS_SHOWN,
+    MAX_SHOPS_SHOWN,
     NOT_HOME,
 )
 
@@ -121,10 +122,10 @@ def lists_for(found: Found, lists: list[dict[str, Any]], counts: dict[str, int])
     return out
 
 
-def shown(items: list[str]) -> str:
-    text = ", ".join(items[:MAX_ITEMS_SHOWN])
-    if len(items) > MAX_ITEMS_SHOWN:
-        text += f" +{len(items) - MAX_ITEMS_SHOWN}"
+def shown(items: list[str], most: int = MAX_ITEMS_SHOWN) -> str:
+    text = ", ".join(items[:most])
+    if len(items) > most:
+        text += f" +{len(items) - most}"
     return text
 
 
@@ -135,6 +136,6 @@ def message(
     lines = []
     for todo in todos:
         shops = list(dict.fromkeys(p.name for p in found.shops.get(todo, [])))
-        where = f" ({', '.join(shops)})" if found.mall and shops else ""
+        where = f" ({shown(shops, MAX_SHOPS_SHOWN)})" if found.mall and shops else ""
         lines.append(f"{names.get(todo, todo)}{where}: {shown(items.get(todo, []))}")
     return "\n".join(lines)

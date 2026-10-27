@@ -149,6 +149,8 @@ async def test_check_service_answers_without_notifying(
     assert result["lists"] == ["todo.casa"]
     assert result["message"] == "Casa: Lâmpadas, Cabides"
     assert notified == []
+    # A point given by hand is a test, not where Lucas has been.
+    assert [s.state for s in hass.states.async_all("sensor")] == ["unknown"]
 
 
 async def test_stopping_at_a_shop_notifies_once_a_day(

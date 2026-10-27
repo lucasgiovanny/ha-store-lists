@@ -85,3 +85,4 @@ def test_message_names_the_mall_shops_and_caps_items() -> None:
         "Shopping: ténis"
     )
     assert shown(["a"]) == "a"
+    assert shown(["a", "b", "c", "d"], 3) == "a, b, c +1"

@@ -148,6 +148,8 @@ class StoreWatcher:
     ) -> dict[str, Any]:
         """Look around a person (or a given point) and tell them which lists this shop is for."""
         state = self.hass.states.get(person)
+        # Only where the person really is counts as their last shop; a point to test does not.
+        real = latitude is None or longitude is None
         if latitude is None or longitude is None:
             if state is None or state.attributes.get("latitude") is None:
                 return {"skipped": "no_location"}
@@ -205,7 +207,7 @@ class StoreWatcher:
             "shops": {todo: [p.name for p in shops] for todo, shops in found.shops.items()},
             "nearby": [p.name for p in places],
         }
-        if where:
+        if where and real:
             self.last[person] = {
                 "place": where.name,
                 "lists": todos,

@@ -32,6 +32,7 @@ MALL_RADIUS: Final = 400
 # Indoors the phone's fix drifts; worse than this and the nearest shop is a guess.
 MAX_ACCURACY: Final = 150
 MAX_ITEMS_SHOWN: Final = 5
+MAX_SHOPS_SHOWN: Final = 3
 
 PLACES_URL: Final = "https://places.googleapis.com/v1/places:searchNearby"
 FIELD_MASK: Final = "places.id,places.displayName,places.types,places.primaryType"
