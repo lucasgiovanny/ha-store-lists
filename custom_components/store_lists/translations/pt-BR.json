@@ -1,0 +1,126 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Chave do Google Places",
+        "description": "Uma chave de API do Google Cloud com a **Places API (New)** ativa.",
+        "data": {
+          "api_key": "Chave de API"
+        }
+      },
+      "people": {
+        "title": "Pessoas",
+        "description": "De quem seguir o celular. Cada pessoa precisa da app do HA; o aviso vai para o celular dela.",
+        "data": {
+          "people": "Pessoas",
+          "errors_to": "Enviar erros do Places a"
+        }
+      }
+    },
+    "error": {
+      "invalid_key": "O Google recusou esta chave. A Places API (New) está ativa e permitida para ela?",
+      "cannot_connect": "Não foi possível contactar o Google Places."
+    },
+    "abort": {
+      "already_configured": "O Store Lists já está configurado."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "list_add": "Adicionar ou alterar uma lista",
+          "list_remove": "Remover listas",
+          "people": "Pessoas",
+          "settings": "Tempo e raio"
+        }
+      },
+      "list_add": {
+        "title": "Lista",
+        "description": "Para que lojas serve esta lista.",
+        "data": {
+          "todo": "Lista de tarefas",
+          "kind": "Lojas",
+          "keywords": "Palavras-chave"
+        },
+        "data_description": {
+          "keywords": "Nomes de lojas que também contam, separados por vírgulas, p. ex. `Primark, Decathlon`."
+        }
+      },
+      "list_remove": {
+        "title": "Remover listas",
+        "data": {
+          "lists": "Listas"
+        }
+      },
+      "people": {
+        "title": "Pessoas",
+        "data": {
+          "people": "Pessoas",
+          "errors_to": "Enviar erros do Places a"
+        }
+      },
+      "settings": {
+        "title": "Tempo e raio",
+        "data": {
+          "radius": "Raio da pesquisa",
+          "dwell_minutes": "Minutos parado antes de procurar",
+          "start": "Seguir a partir das",
+          "end": "Seguir até às"
+        }
+      }
+    }
+  },
+  "selector": {
+    "kind": {
+      "options": {
+        "home": "Casa e móveis (IKEA, JYSK, Zara Home…)",
+        "diy": "Bricolage e ferragens (Leroy Merlin, AKI…)",
+        "mall": "Centros comerciais e grandes armazéns",
+        "keywords": "Só as palavras-chave"
+      }
+    }
+  },
+  "issues": {
+    "places_error": {
+      "title": "O pedido ao Google Places falhou",
+      "description": "O Store Lists não conseguiu perguntar ao Google Places o que há por perto: {error}. Confira a chave de API e que a Places API (New) está ativa para ela."
+    }
+  },
+  "services": {
+    "check": {
+      "name": "Verificar um local",
+      "description": "Pergunta ao Google Places o que há à volta de uma pessoa (ou de um ponto) e devolve as listas que servem. Só envia o aviso se pedido.",
+      "fields": {
+        "person": {
+          "name": "Pessoa",
+          "description": "De quem são as listas e o celular."
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "Um ponto a verificar em vez de onde a pessoa está."
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "Um ponto a verificar em vez de onde a pessoa está."
+        },
+        "notify": {
+          "name": "Avisar",
+          "description": "Envia o aviso como se tivesse parado ali."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "last_store": {
+        "name": "Última loja {person}"
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "O Store Lists não está configurado."
+    }
+  }
+}

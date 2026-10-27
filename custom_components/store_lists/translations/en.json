@@ -1,0 +1,126 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Google Places key",
+        "description": "A Google Cloud API key with **Places API (New)** enabled.",
+        "data": {
+          "api_key": "API key"
+        }
+      },
+      "people": {
+        "title": "People",
+        "description": "Whose phones to watch. Each needs the companion app; the notification goes to their phone.",
+        "data": {
+          "people": "People",
+          "errors_to": "Send Places errors to"
+        }
+      }
+    },
+    "error": {
+      "invalid_key": "Google rejected this key. Is Places API (New) enabled and allowed for it?",
+      "cannot_connect": "Could not reach Google Places."
+    },
+    "abort": {
+      "already_configured": "Store Lists is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "list_add": "Add or change a list",
+          "list_remove": "Remove lists",
+          "people": "People",
+          "settings": "Timing and radius"
+        }
+      },
+      "list_add": {
+        "title": "List",
+        "description": "Which shops this list is for.",
+        "data": {
+          "todo": "To-do list",
+          "kind": "Shops",
+          "keywords": "Keywords"
+        },
+        "data_description": {
+          "keywords": "Comma-separated shop names that also count, e.g. `Primark, Decathlon`."
+        }
+      },
+      "list_remove": {
+        "title": "Remove lists",
+        "data": {
+          "lists": "Lists"
+        }
+      },
+      "people": {
+        "title": "People",
+        "data": {
+          "people": "People",
+          "errors_to": "Send Places errors to"
+        }
+      },
+      "settings": {
+        "title": "Timing and radius",
+        "data": {
+          "radius": "Search radius",
+          "dwell_minutes": "Minutes stopped before looking",
+          "start": "Watch from",
+          "end": "Watch until"
+        }
+      }
+    }
+  },
+  "selector": {
+    "kind": {
+      "options": {
+        "home": "Home & furniture (IKEA, JYSK, Zara Home…)",
+        "diy": "DIY & hardware (Leroy Merlin, AKI…)",
+        "mall": "Shopping centres and department stores",
+        "keywords": "Only the keywords"
+      }
+    }
+  },
+  "issues": {
+    "places_error": {
+      "title": "Google Places request failed",
+      "description": "Store Lists could not ask Google Places what is nearby: {error}. Check the API key and that Places API (New) is enabled for it."
+    }
+  },
+  "services": {
+    "check": {
+      "name": "Check a location",
+      "description": "Asks Google Places what is around a person (or a point) and returns which lists it serves. Sends the notification only when asked.",
+      "fields": {
+        "person": {
+          "name": "Person",
+          "description": "Whose lists and phone."
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "A point to check instead of where the person is."
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "A point to check instead of where the person is."
+        },
+        "notify": {
+          "name": "Notify",
+          "description": "Send the notification as if they had stopped there."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "last_store": {
+        "name": "Last store {person}"
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Store Lists is not set up."
+    }
+  }
+}

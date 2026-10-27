@@ -1,0 +1,25 @@
+check:
+  fields:
+    person:
+      required: true
+      selector:
+        entity:
+          domain: person
+    latitude:
+      selector:
+        number:
+          min: -90
+          max: 90
+          step: any
+          mode: box
+    longitude:
+      selector:
+        number:
+          min: -180
+          max: 180
+          step: any
+          mode: box
+    notify:
+      default: false
+      selector:
+        boolean:

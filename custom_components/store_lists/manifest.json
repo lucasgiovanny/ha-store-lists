@@ -1,0 +1,13 @@
+{
+  "domain": "store_lists",
+  "name": "Store Lists",
+  "after_dependencies": ["mobile_app", "person", "todo"],
+  "codeowners": ["@lucasgiovanny"],
+  "config_flow": true,
+  "documentation": "https://github.com/lucasgiovanny/ha-store-lists",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/lucasgiovanny/ha-store-lists/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
