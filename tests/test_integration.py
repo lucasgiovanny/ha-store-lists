@@ -1,6 +1,7 @@
 """Setup, the check service and the dwell trigger end to end, with Places mocked."""
 
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
@@ -204,6 +205,44 @@ async def test_moving_again_before_the_dwell_cancels_the_look(
     await hass.async_block_till_done()
     assert aioclient_mock.call_count == 0
     assert notified == []
+
+
+async def test_a_quiet_spell_while_driving_is_not_a_stop(
+    hass: HomeAssistant, entry: MockConfigEntry, aioclient_mock: AiohttpClientMocker, notified
+) -> None:
+    aioclient_mock.post(PLACES_URL, json=IKEA)
+    hass.states.async_set("device_tracker.lucas_iphone", "not_home", {**AWAY, "speed": 14})
+    hass.states.async_set(
+        "person.lucas", "not_home", {**AWAY, "source": "device_tracker.lucas_iphone"}
+    )
+    await hass.async_block_till_done()
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=4))
+    await hass.async_block_till_done()
+    assert aioclient_mock.call_count == 0
+    assert notified == []
+
+
+async def test_one_answer_serves_everyone_nearby(
+    hass: HomeAssistant, entry: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
+    aioclient_mock.post(PLACES_URL, json=IKEA)
+    watcher = entry.runtime_data
+    hass.states.async_set("person.rafa", "not_home", {**AWAY, "latitude": 38.8180})
+    hass.states.async_set("person.lucas", "not_home", AWAY)
+
+    first = await watcher.async_check("person.lucas", notify=False)
+    # Rafa ~70 m away, a few minutes later: same shop, no second request.
+    second = await watcher.async_check("person.rafa", notify=False)
+    assert first["place"] == second["place"] == "IKEA Loures"
+    assert aioclient_mock.call_count == 1
+
+    # Two hours on, the answer is stale and Places is asked again.
+    with patch(
+        "custom_components.store_lists.watcher.dt_util.utcnow",
+        return_value=dt_util.utcnow() + timedelta(hours=3),
+    ):
+        await watcher.async_check("person.lucas", notify=False)
+    assert aioclient_mock.call_count == 2
 
 
 async def test_places_error_raises_an_issue_and_tells_once(

@@ -12,9 +12,11 @@ lists has something on it.
 ## How it decides
 
 1. A person's location stops changing for a few minutes (3 by default), away from home, within
-   the hours you set (08:00–23:00 by default) and with a usable GPS fix.
+   the hours you set (08:00–23:00 by default) and with a usable GPS fix. If the last fix came
+   in at walking pace or faster (2 m/s), they were driving past, not stopped.
 2. If any configured list has open items, Places is asked what shops are within the radius
-   (100 m by default).
+   (100 m by default). The answer is reused for two hours for anyone within 150 m, so a long
+   visit or two people shopping together cost one request.
 3. Each list says which shops it is for:
 
    | Kind | Matches |

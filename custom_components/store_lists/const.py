@@ -31,6 +31,11 @@ DEFAULT_END: Final = "23:00:00"
 MALL_RADIUS: Final = 400
 # Indoors the phone's fix drifts; worse than this and the nearest shop is a guess.
 MAX_ACCURACY: Final = 150
+# m/s; the phone reports sparsely while driving, so a quiet spell at speed is not a stop.
+MOVING_SPEED: Final = 2
+# One Places answer serves every check this close to it for a while, whoever is checking.
+REUSE_DISTANCE: Final = 150
+REUSE_MINUTES: Final = 120
 MAX_ITEMS_SHOWN: Final = 5
 MAX_SHOPS_SHOWN: Final = 3
 

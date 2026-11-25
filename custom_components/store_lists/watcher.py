@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 from typing import Any
 
@@ -19,6 +19,7 @@ from homeassistant.helpers.event import async_call_later, async_track_state_chan
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 from homeassistant.util import slugify
+from homeassistant.util.location import distance
 
 from .const import (
     CONF_API_KEY,
@@ -37,11 +38,14 @@ from .const import (
     EVENT_MATCH,
     MALL_RADIUS,
     MAX_ACCURACY,
+    MOVING_SPEED,
+    REUSE_DISTANCE,
+    REUSE_MINUTES,
     SEARCH_TYPES,
     SIGNAL_UPDATE,
     STORAGE_VERSION,
 )
-from .logic import classify, lists_for, message, wants_mall_name
+from .logic import Found, Place, classify, lists_for, message, wants_mall_name
 from .places import PlacesError, search_nearby
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,6 +75,7 @@ class StoreWatcher:
         self._day = ""
         self._seen: list[str] = []
         self._timers: dict[str, CALLBACK_TYPE] = {}
+        self._answers: list[tuple[float, float, datetime, Found]] = []
         self._unsub: list[Callable[[], None]] = []
 
     async def async_load(self) -> None:
@@ -159,44 +164,24 @@ class StoreWatcher:
                     return {"skipped": "home"}
                 if float(state.attributes.get("gps_accuracy") or 0) > MAX_ACCURACY:
                     return {"skipped": "inaccurate"}
+                if self._speed(state.attributes.get("source")) >= MOVING_SPEED:
+                    return {"skipped": "moving"}
         if not force and not self._open():
             return {"skipped": "hours"}
         counts = self._counts()
         if not force and not any(counts.values()):
             return {"skipped": "empty_lists"}
 
-        session = async_get_clientsession(self.hass)
-        language = self.hass.config.language or "en"
-        try:
-            places = await search_nearby(
-                session,
-                self.api_key,
-                latitude,
-                longitude,
-                self.radius,
-                types=SEARCH_TYPES,
-                language=language,
-            )
-            found = classify(places, self.lists)
-            if wants_mall_name(found):
-                # Shops inside malls are often tagged as malls themselves: the busiest one nearby is the real one.
-                malls = await search_nearby(
-                    session,
-                    self.api_key,
-                    latitude,
-                    longitude,
-                    MALL_RADIUS,
-                    primary_types=["shopping_mall"],
-                    rank="POPULARITY",
-                    max_results=1,
-                    language=language,
-                )
-                if malls:
-                    found.mall = malls[0]
-        except PlacesError as err:
-            await self._failed(err)
-            return {"error": str(err)}
-        ir.async_delete_issue(self.hass, DOMAIN, "places_error")
+        found = None if force else self._answer_near(latitude, longitude)
+        if found is None:
+            try:
+                found = await self._look(latitude, longitude)
+            except PlacesError as err:
+                await self._failed(err)
+                return {"error": str(err)}
+            ir.async_delete_issue(self.hass, DOMAIN, "places_error")
+            self._answers.append((latitude, longitude, dt_util.utcnow(), found))
+        places = found.places
 
         todos = lists_for(found, self.lists, counts)
         where = found.where
@@ -231,6 +216,52 @@ class StoreWatcher:
             self._save()
         self.hass.bus.async_fire(EVENT_MATCH, {"person": person, **result})
         return result
+
+    def _speed(self, tracker: str | None) -> float:
+        state = self.hass.states.get(tracker) if tracker else None
+        try:
+            return float(state.attributes.get("speed") or 0) if state else 0
+        except (TypeError, ValueError):
+            return 0
+
+    def _answer_near(self, latitude: float, longitude: float) -> Found | None:
+        since = dt_util.utcnow() - timedelta(minutes=REUSE_MINUTES)
+        self._answers = [a for a in self._answers if a[2] >= since]
+        for lat, lon, _at, found in self._answers:
+            if (distance(latitude, longitude, lat, lon) or 0) <= REUSE_DISTANCE:
+                return found
+        return None
+
+    async def _look(self, latitude: float, longitude: float) -> Found:
+        """Ask Places what shops are here and, inside a mall, which mall."""
+        session = async_get_clientsession(self.hass)
+        language = self.hass.config.language or "en"
+        places = await search_nearby(
+            session,
+            self.api_key,
+            latitude,
+            longitude,
+            self.radius,
+            types=SEARCH_TYPES,
+            language=language,
+        )
+        found = classify(places, self.lists)
+        if wants_mall_name(found):
+            # Shops inside malls are often tagged as malls themselves: the busiest one nearby is the real one.
+            malls: list[Place] = await search_nearby(
+                session,
+                self.api_key,
+                latitude,
+                longitude,
+                MALL_RADIUS,
+                primary_types=["shopping_mall"],
+                rank="POPULARITY",
+                max_results=1,
+                language=language,
+            )
+            if malls:
+                found.mall = malls[0]
+        return found
 
     async def _items(self, todos: list[str]) -> dict[str, list[str]]:
         resp = await self.hass.services.async_call(
